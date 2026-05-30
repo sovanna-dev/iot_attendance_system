@@ -6,12 +6,7 @@
     <title>IoT Attendance System - Firestore</title>
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- Firebase SDK -->
-     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>  <!-- ADD THIS -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
+   
 </head>
 <body>
     
@@ -262,8 +257,36 @@
         </div>
     </div>
     
-    <!-- Scripts -->
-    <script src="js/firebase-config.js"></script>
+        <!-- ========================================== -->
+    <!-- FIREBASE SDK -->
+    <!-- ========================================== -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- ========================================== -->
+    <!-- FIREBASE CONFIGURATION -->
+    <!-- ========================================== -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyANj4aMwGxKE5CFKAHHojPNOxk-xfTAtVo",
+            databaseURL: "https://attendance-system-esp32-c6ed2-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "attendance-system-esp32-c6ed2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const db = firebase.firestore();
+
+        console.log('✅ Firebase ready');
+    </script>
+
+    <!-- ========================================== -->
+    <!-- APP SCRIPTS -->
+    <!-- ========================================== -->
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
