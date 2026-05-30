@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Attendance System - Firestore</title>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Firebase SDK -->
+     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>  <!-- ADD THIS -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+</head>
+<body>
+    
+    <!-- ========================================== -->
+    <!-- AUTH PAGE -->
+    <!-- ========================================== -->
+    <div class="auth-page" id="authPage">
+        <div class="auth-container">
+            <div class="auth-card">
+                
+                <div class="auth-header">
+                    <div class="auth-logo">📟</div>
+                    <h1 id="formTitle">🔐 Sign In</h1>
+                    <p id="formSubtitle">Access Attendance Dashboard</p>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="loginBox">
+                    <div class="error-message" id="loginError"></div>
+                    
+                    <div class="form-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔒 Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+                    </div>
+                    
+                    <button class="btn btn-primary" id="loginBtn" onclick="login()">
+                        🔐 Sign In
+                    </button>
+                    
+                    <p class="auth-switch">
+                        Don't have an account? 
+                        <a onclick="showRegister()">Create one here</a>
+                    </p>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="registerBox" style="display:none;">
+                    <div class="error-message" id="registerError"></div>
+                    <div class="success-message" id="registerSuccess"></div>
+                    
+                    <div class="form-group">
+                        <label>👤 Full Name</label>
+                        <input type="text" id="registerName" placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📧 Email</label>
+                        <input type="email" id="registerEmail" placeholder="Enter your email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔒 Password</label>
+                        <input type="password" id="registerPassword" placeholder="Min 6 characters">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔒 Confirm Password</label>
+                        <input type="password" id="registerConfirmPassword" placeholder="Re-enter password">
+                    </div>
+                    
+                    <button class="btn btn-primary" id="registerBtn" onclick="register()">
+                        📝 Create Account
+                    </button>
+                    
+                    <p class="auth-switch">
+                        Already have an account? 
+                        <a onclick="showLogin()">Sign in here</a>
+                    </p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- ========================================== -->
+    <!-- DASHBOARD PAGE -->
+    <!-- ========================================== -->
+    <div class="dashboard-page" id="dashboardPage">
+        
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <div class="nav-brand-icon">📟</div>
+                <span>IoT Attendance</span>
+                <span class="live-dot"></span>
+            </div>
+            
+            <div class="nav-user">
+                <div class="user-info">
+                    <div class="user-name" id="displayName">User</div>
+                    <div class="user-role" id="userRole">👤 Viewer</div>
+                </div>
+                <div class="user-avatar" id="userAvatar">U</div>
+                <button class="btn-logout" onclick="logout()">🚪 Logout</button>
+            </div>
+        </nav>
+        
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="totalStudents">10</div>
+                    <div class="stat-label">Registered Students</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="todayCount">0</div>
+                    <div class="stat-label">Today's Attendance</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-value" id="totalRecords">0</div>
+                    <div class="stat-label">Total Records</div>
+                </div>
+                
+                <div class="stat-card admin-only" style="display:none;">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="statUsers">0</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+            </div>
+            
+            <!-- Admin Panel -->
+<div class="admin-only" style="display:none;">
+    
+    <!-- Admin Actions -->
+    <div class="table-container" style="margin-bottom: 20px;">
+        <div class="table-header">
+            <h2>👑 Admin Panel</h2>
+            <span style="color: #fbbf24; font-size: 12px;">⌨️ Shortcuts: Ctrl+E | Ctrl+G | Ctrl+F</span>
+        </div>
+        <div style="display:flex;gap:10px;padding:15px;flex-wrap:wrap;">
+            
+            <button class="btn btn-primary" onclick="exportToCSV()" style="width:auto;">
+                📥 Export CSV
+            </button>
+            
+            <button class="btn btn-primary" onclick="openGoogleSheets()" 
+                    style="width:auto; background: linear-gradient(135deg, #0f9d58, #4285f4);">
+                📊 Google Sheets
+            </button>
+            
+            <button class="btn btn-outline" onclick="openFirebaseConsole()" style="width:auto;">
+                ☁️ Firebase Console
+            </button>
+            
+            <button class="btn btn-outline" onclick="addStudentForm()" style="width:auto;">
+                ➕ Add Student
+            </button>
+            
+            <button class="btn btn-outline" onclick="loadUsers()" style="width:auto;">
+                🔄 Refresh Users
+            </button>
+            
+        </div>
+    </div>
+    
+    <!-- Admin Stats -->
+    <div class="stats-grid" style="margin-bottom: 20px;">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="statUsers">0</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📥</div>
+            <div class="stat-value" style="font-size:14px; -webkit-text-fill-color: #4ade80;">
+                Ctrl+E
+            </div>
+            <div class="stat-label">Export CSV</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value" style="font-size:14px; -webkit-text-fill-color: #60a5fa;">
+                Ctrl+G
+            </div>
+            <div class="stat-label">Google Sheets</div>
+        </div>
+    </div>
+    
+    <!-- User Management -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>👥 User Management</h2>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersList">
+                <tr>
+                    <td colspan="4" style="text-align:center;">Loading users...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+</div>
+            
+            <!-- Attendance Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>📋 Attendance Records</h2>
+                    <div class="table-actions">
+                        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search...">
+                        <button class="btn-refresh" id="refreshBtn">🔄 Refresh</button>
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:40px;">
+                                🟢 Connecting to Firestore...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="last-update" id="lastUpdate"></div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
