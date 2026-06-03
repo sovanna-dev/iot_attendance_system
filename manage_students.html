@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management - IoT Attendance</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .management-page {
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .nav-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .nav-back:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="management-page">
+        <a href="index.html" class="nav-back">← Back to Home</a>
+        
+        <h1 style="margin-bottom:20px;">👥 Student Management</h1>
+        
+        <!-- Add Student Form -->
+        <div class="table-container" style="margin-bottom:20px;">
+            <div class="table-header"><h2>➕ Add New Student</h2></div>
+            <div style="padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                <div class="form-group">
+                    <label>Student ID (STUXXX)</label>
+                    <input type="text" id="newID" placeholder="STU003" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;">
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="newName" placeholder="Student Name" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;">
+                </div>
+                <div class="form-group">
+                    <label>Card UID</label>
+                    <input type="text" id="newUID" placeholder="XX XX XX XX" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;">
+                </div>
+                <div class="form-group">
+                    <label>Class</label>
+                    <input type="text" id="newClass" placeholder="IoT Course" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;">
+                </div>
+            </div>
+            <div style="padding:0 20px 20px;">
+                <button class="btn btn-primary" onclick="addStudent()" style="width:100%;">➕ Add Student</button>
+            </div>
+        </div>
+        
+        <!-- Student List -->
+        <div class="table-container">
+            <div class="table-header"><h2>📋 Student List</h2></div>
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Class</th><th>Card UID</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="studentTable">
+                    <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyANj4aMwGxKE5CFKAHHojPNOxk-xfTAtVo",
+            databaseURL: "https://attendance-system-esp32-c6ed2-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "attendance-system-esp32-c6ed2"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function loadStudents() {
+            database.ref('students').on('value', snapshot => {
+                const data = snapshot.val() || {};
+                const table = document.getElementById('studentTable');
+                const ids = Object.keys(data);
+                
+                if (ids.length === 0) {
+                    table.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students</td></tr>';
+                    return;
+                }
+                
+                table.innerHTML = ids.map(id => {
+                    const s = data[id];
+                    return `<tr>
+                        <td><strong>${id}</strong></td>
+                        <td>${s.name||'-'}</td>
+                        <td>${s.class||'-'}</td>
+                        <td>${s.uid||'-'}</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="deleteStudent('${id}')" style="padding:5px 10px;">🗑️</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            });
+        }
+
+        function addStudent() {
+            const id = document.getElementById('newID').value.trim();
+            const name = document.getElementById('newName').value.trim();
+            const uid = document.getElementById('newUID').value.trim();
+            const cls = document.getElementById('newClass').value.trim();
+            
+            if (!id || !name) return alert('Fill ID and Name!');
+            
+            database.ref('students/' + id).set({
+                uid: uid || '00 00 00 00',
+                name: name,
+                studentID: id,
+                class: cls || 'IoT Course'
+            }).then(() => {
+                alert('✅ Student added!');
+                document.getElementById('newID').value = '';
+                document.getElementById('newName').value = '';
+                document.getElementById('newUID').value = '';
+                document.getElementById('newClass').value = '';
+            });
+        }
+
+        function deleteStudent(id) {
+            if (confirm('Delete ' + id + '?')) {
+                database.ref('students/' + id).remove();
+            }
+        }
+
+        loadStudents();
+    </script>
+</body>
+</html>
